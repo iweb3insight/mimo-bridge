@@ -4,6 +4,8 @@
 
 A lightweight proxy that bridges the **Responses API** (used by Codex CLI) to the **Chat Completions API** (supported by MiMo and compatible models). Handles format conversion, tool call translation, streaming, and conversation history optimization — all in a single Python file.
 
+**Ready to use** — function calling works out of the box. For those who want a working setup without the hassle.
+
 ---
 
 ## Features
@@ -24,7 +26,7 @@ A lightweight proxy that bridges the **Responses API** (used by Codex CLI) to th
 ### 1. Clone
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/mimo-bridge.git
+git clone https://github.com/iweb3insight/mimo-bridge.git
 cd mimo-bridge
 ```
 
@@ -182,6 +184,42 @@ Truncated content includes explicit markers telling the model **not to infer mis
  You have NO knowledge of what was in those messages.
  Do NOT assume or guess — if unsure, ask the user.]
 ```
+
+---
+
+## Known Issues
+
+### MiMo Singapore API Latency
+
+The MiMo API endpoint is hosted in Singapore. For users outside Southeast Asia, network latency adds up:
+
+```
+TCP connect:     156ms
+TLS handshake:   248ms
+Server processing: 94ms
+──────────────────────
+Total network:   498ms (one-way)
+```
+
+However, the real bottleneck is **model inference**, not network:
+
+```
+  Time          Model            Duration
+  ━━━━━━━━━━━━  ━━━━━━━━━━━━━━━  ━━━━━━━━
+  21:38:25      mimo-v2.5-pro    8.3s
+  ────────────  ───────────────  ────────
+  21:38:31      mimo-v2.5-pro    10.1s
+  ────────────  ───────────────  ────────
+  21:38:41      mimo-v2.5-pro    26.5s
+  ────────────  ───────────────  ────────
+  21:39:18      mimo-v2.5-pro    29.6s
+```
+
+> Context per request: 32 messages, 13 tools, 22K–25K chars (trimmed from 39–47 messages)
+
+MiMo is a reasoning model — even simple queries take ~5–8s. Complex multi-tool tasks can take 20–30s. This is the model's design, not a proxy issue.
+
+**Mitigation**: Use `reasoning_effort = "medium"` (default). Avoid `"high"` unless you need deep reasoning — it doesn't reduce latency but may improve output quality on complex tasks.
 
 ---
 
