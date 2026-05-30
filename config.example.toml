@@ -1,0 +1,13 @@
+# ~/.codex/config.toml
+# Codex CLI configuration for mimo-bridge
+
+model_provider = "mimo"
+model = "mimo-v2.5-pro"
+model_reasoning_effort = "medium"
+model_catalog_json = "/path/to/mimo-bridge/model_catalog.json"
+
+[model_providers.mimo]
+name = "mimo"
+wire_api = "responses"
+base_url = "http://localhost:4000/v1"
+experimental_bearer_token = "any-placeholder-token"

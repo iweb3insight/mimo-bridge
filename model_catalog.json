@@ -1,0 +1,31 @@
+{
+  "models": [
+    {
+      "slug": "mimo-v2.5-pro",
+      "display_name": "MiMo-v2.5-Pro",
+      "description": "Xiaomi MiMo v2.5 Pro model for coding tasks",
+      "default_reasoning_level": "medium",
+      "supported_reasoning_levels": [
+        {
+          "effort": "low",
+          "description": "Fast responses with lighter reasoning"
+        },
+        {
+          "effort": "medium",
+          "description": "Balanced speed and reasoning depth"
+        },
+        {
+          "effort": "high",
+          "description": "Greater reasoning depth for complex problems"
+        }
+      ],
+      "shell_type": "shell_command",
+      "visibility": "list",
+      "supported_in_api": true,
+      "context_window": 128000,
+      "max_context_window": 128000,
+      "supports_parallel_tool_calls": true,
+      "input_modalities": ["text"]
+    }
+  ]
+}
