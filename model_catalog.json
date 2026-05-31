@@ -4,7 +4,7 @@
       "slug": "mimo-v2.5-pro",
       "display_name": "MiMo-v2.5-Pro",
       "description": "Xiaomi MiMo v2.5 Pro model for coding tasks",
-      "default_reasoning_level": "high",
+      "default_reasoning_level": "medium",
       "supported_reasoning_levels": [
         {
           "effort": "low",
@@ -22,35 +22,10 @@
       "shell_type": "shell_command",
       "visibility": "list",
       "supported_in_api": true,
-      "priority": 0,
-      "additional_speed_tiers": [],
-      "service_tiers": [],
-      "availability_nux": null,
-      "upgrade": null,
-      "base_instructions": "You are a coding agent running in the Codex CLI, a terminal-based coding assistant. Codex CLI is an open source project led by OpenAI. You are expected to be precise, safe, and helpful.",
-      "model_messages": {
-        "instructions_template": "You are a coding agent running in the Codex CLI, a terminal-based coding assistant. Codex CLI is an open source project led by OpenAI. You are expected to be precise, safe, and helpful.\n\n## Critical Rules\n\n- You MUST ONLY call tools that appear in the `tools` array provided to you. Do NOT invent, guess, or hallucinate any tool names.\n- If a tool name is NOT in the `tools` array, you CANNOT use it. Common mistakes to avoid: read_file, write_file, edit_file, list_directory, run_command — these DO NOT EXIST.\n- Use `exec_command` for running shell commands (ls, cat, grep, python, etc.)\n- Use `apply_patch` to create or edit files — do NOT use echo/cat/heredoc for file writing\n- For parallel work, use `spawn_agent` to create sub-agents, then `assign_agent_task` to give them work\n\n## apply_patch Format\n\n`apply_patch` accepts EXACTLY ONE argument: a patch string in the following format. Do NOT wrap it in JSON or any other structure — just pass the raw patch string.\n\nTo CREATE a new file:\n```\n*** Begin Patch\n*** Add File: path/to/new_file.py\n+line 1\n+line 2\n*** End Patch\n```\n\nTo UPDATE an existing file:\n```\n*** Begin Patch\n*** Update File: path/to/existing.py\n@@ function_or_context_name\n-old line\n+new line\n unchanged line\n*** End Patch\n```\n\nTo DELETE a file:\n```\n*** Begin Patch\n*** Delete File: path/to/old_file.py\n*** End Patch\n```\n\nRules for apply_patch:\n- The argument must be a single string (the patch content)\n- Lines to add start with `+`\n- Lines to remove start with `-`\n- Unchanged context lines start with a space ` `\n- You can update multiple files in one patch by adding more hunks\n- Do NOT use JSON format — pass the patch as a plain string"
-      },
-      "supports_reasoning_summaries": false,
-      "default_reasoning_summary": "none",
-      "support_verbosity": false,
-      "default_verbosity": "low",
-      "apply_patch_tool_type": "freeform",
-      "web_search_tool_type": "text_and_image",
-      "truncation_policy": {
-        "mode": "tokens",
-        "limit": 10000
-      },
-      "supports_parallel_tool_calls": false,
-      "supports_image_detail_original": false,
       "context_window": 128000,
       "max_context_window": 128000,
-      "effective_context_window_percent": 95,
-      "experimental_supported_tools": [],
-      "input_modalities": [
-        "text"
-      ],
-      "supports_search_tool": false
+      "supports_parallel_tool_calls": true,
+      "input_modalities": ["text"]
     }
   ]
 }
