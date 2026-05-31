@@ -23,8 +23,11 @@ import traceback
 import uuid
 import httpx
 import uvicorn
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
+
+load_dotenv()
 
 app = FastAPI()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(message)s")
