@@ -14,6 +14,7 @@ Bridges the Responses API (used by Codex CLI) to Chat Completions API
 (supported by MiMo and other compatible models), with conversation
 history trimming, tool format conversion, and streaming support.
 """
+import asyncio
 import json
 import logging
 import os
@@ -367,7 +368,12 @@ async def responses_endpoint(request: Request):
             logger.debug("Tools: %s", json.dumps(chat_req.get('tools', []), ensure_ascii=False)[:500])
             return StreamingResponse(
                 stream_response(chat_req, headers, model),
-                media_type="text/event-stream"
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "X-Accel-Buffering": "no",
+                },
             )
 
         t0 = time.time()
@@ -402,6 +408,12 @@ async def stream_response(chat_req, headers, model):
 
     t0 = time.time()
     async with _http_client.stream("POST", f"{MIMO_BASE}/chat/completions", json=chat_req, headers=headers) as resp:
+        if resp.status_code != 200:
+            body = await resp.aread()
+            logger.error("Upstream stream error: %d %s", resp.status_code, body[:300])
+            yield f"data: {json.dumps({'error': {'message': 'Upstream stream error', 'code': resp.status_code}})}\n\n"
+            return
+
         async for line in resp.aiter_lines():
             if not line.startswith("data: "):
                 continue
@@ -428,6 +440,7 @@ async def stream_response(chat_req, headers, model):
 
                     text_chunks.append(content)
                     yield f"data: {json.dumps({'type': 'response.output_text.delta', 'output_index': current_text_item['output_index'], 'content_index': 0, 'delta': content})}\n\n"
+                    await asyncio.sleep(0)
 
                 tool_calls = delta.get("tool_calls") or []
                 for tc in tool_calls:
@@ -462,6 +475,7 @@ async def stream_response(chat_req, headers, model):
                         fc_item = tool_call_items[tc_index]
                         fc_item["arguments"] += func_args
                         yield f"data: {json.dumps({'type': 'response.function_call_arguments.delta', 'output_index': fc_item['output_index'], 'call_id': fc_item['id'], 'delta': func_args})}\n\n"
+                        await asyncio.sleep(0)
 
                 finish_reason = choice.get("finish_reason")
                 if finish_reason == "tool_calls":
@@ -475,6 +489,7 @@ async def stream_response(chat_req, headers, model):
                         real_call_id = fc_item["id"]
                         yield f"data: {json.dumps({'type': 'response.function_call_arguments.done', 'output_index': fc_item['output_index'], 'call_id': real_call_id, 'arguments': fc_item['arguments']})}\n\n"
                         yield f"data: {json.dumps({'type': 'response.output_item.done', 'output_index': fc_item['output_index'], 'item': {'id': real_call_id, 'type': 'function_call', 'status': 'completed', 'name': fc_item['name'], 'call_id': real_call_id, 'arguments': fc_item['arguments']}})}\n\n"
+                    await asyncio.sleep(0)
 
             except json.JSONDecodeError:
                 continue
@@ -504,4 +519,10 @@ async def health():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=4000)
+    try:
+        import uvloop
+        uvloop.install()
+        logger.info("uvloop installed")
+    except ImportError:
+        logger.info("uvloop not available, using default asyncio loop")
+    uvicorn.run(app, host="0.0.0.0", port=4000, timeout_keep_alive=65)
